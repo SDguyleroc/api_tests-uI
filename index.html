@@ -63,7 +63,7 @@
                 return;
             }
 
-            fetch("http://localhost:5000/auth/login", {
+            fetch("http://192.168.32.29:3080/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ machineId, machineSecret })
@@ -89,7 +89,7 @@
                 return;
             }
 
-            fetch(`http://localhost:5000${endpoint}`, {
+            fetch(`http://192.168.32.29:3080${endpoint}`, {
                 method: "GET",
                 headers: { "Authorization": `Bearer ${accessToken}` }
             })
@@ -109,7 +109,7 @@
                 return;
             }
 
-            fetch("http://localhost:5000/auth/refresh", {
+            fetch("http://192.168.32.29:3080/auth/refresh", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ refreshToken })
@@ -134,7 +134,7 @@
                 return;
             }
 
-            fetch("http://localhost:5000/auth/logout", {
+            fetch("http://192.168.32.29:3080/auth/logout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ machineId })
