@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>JWT API Access</title>
+</head>
+<body>
+    <h2>JWT-Based API Access</h2>
+
+    <h3>1️⃣ Authenticate & Get JWT Token</h3>
+    <label for="machineId">Machine ID:</label>
+    <input type="text" id="machineId" placeholder="Enter Machine ID">
+
+    <br><br>
+
+    <label for="machineSecret">Machine Secret:</label>
+    <input type="password" id="machineSecret" placeholder="Enter Machine Secret">
+
+    <br><br>
+
+    <button id="loginBtn">Login</button>
+    <p id="loginOutput"></p>
+
+    <hr>
+
+    <h3>2️⃣ Enter API Endpoint & Fetch Data</h3>
+    <label for="endpoint">API Endpoint (e.g., /api/pending, /api/new):</label>
+    <input type="text" id="endpoint" placeholder="/api/pending">
+
+    <br><br>
+
+    <button id="fetchBtn">Fetch Data</button>
+    <pre id="output"></pre>
+
+    <hr>
+
+    <h3>3️⃣ Refresh JWT Token</h3>
+    <button id="refreshBtn">Refresh Token</button>
+    <p id="refreshOutput"></p>
+
+    <hr>
+
+    <h3>4️⃣ Logout</h3>
+    <button id="logoutBtn">Logout</button>
+    <p id="logoutOutput"></p>
+
+    <script>
+        let accessToken = "";
+        let refreshToken = "";
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("loginBtn").addEventListener("click", login);
+            document.getElementById("fetchBtn").addEventListener("click", fetchData);
+            document.getElementById("refreshBtn").addEventListener("click", refreshTokenRequest);
+            document.getElementById("logoutBtn").addEventListener("click", logout);
+        });
+
+        function login() {
+            const machineId = document.getElementById("machineId").value;
+            const machineSecret = document.getElementById("machineSecret").value;
+
+            if (!machineId || !machineSecret) {
+                document.getElementById("loginOutput").innerText = "❌ Please enter Machine ID and Secret!";
+                return;
+            }
+
+            fetch("http://localhost:5000/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ machineId, machineSecret })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.accessToken && data.refreshToken) {
+                    accessToken = data.accessToken;
+                    refreshToken = data.refreshToken;
+                    document.getElementById("loginOutput").innerText = "✅ Login successful! Token received.";
+                } else {
+                    document.getElementById("loginOutput").innerText = "❌ Login failed!";
+                }
+            })
+            .catch(error => document.getElementById("loginOutput").innerText = `❌ Error: ${error.message}`);
+        }
+
+        function fetchData() {
+            const endpoint = document.getElementById("endpoint").value.trim();
+
+            if (!accessToken || !endpoint) {
+                document.getElementById("output").innerText = "❌ Please log in and enter an endpoint!";
+                return;
+            }
+
+            fetch(`http://localhost:5000${endpoint}`, {
+                method: "GET",
+                headers: { "Authorization": `Bearer ${accessToken}` }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP Error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => document.getElementById("output").innerText = JSON.stringify(data, null, 2))
+            .catch(error => document.getElementById("output").innerText = `❌ Error: ${error.message}`);
+        }
+
+        function refreshTokenRequest() {
+            if (!refreshToken) {
+                document.getElementById("refreshOutput").innerText = "❌ No refresh token available!";
+                return;
+            }
+
+            fetch("http://localhost:5000/auth/refresh", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refreshToken })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.accessToken) {
+                    accessToken = data.accessToken;
+                    document.getElementById("refreshOutput").innerText = "✅ Token refreshed successfully!";
+                } else {
+                    document.getElementById("refreshOutput").innerText = "❌ Refresh failed!";
+                }
+            })
+            .catch(error => document.getElementById("refreshOutput").innerText = `❌ Error: ${error.message}`);
+        }
+
+        function logout() {
+            const machineId = document.getElementById("machineId").value;
+
+            if (!machineId) {
+                document.getElementById("logoutOutput").innerText = "❌ Enter Machine ID to logout!";
+                return;
+            }
+
+            fetch("http://localhost:5000/auth/logout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ machineId })
+            })
+            .then(response => response.json())
+            .then(() => {
+                accessToken = "";
+                refreshToken = "";
+                document.getElementById("logoutOutput").innerText = "✅ Logged out successfully!";
+            })
+            .catch(error => document.getElementById("logoutOutput").innerText = `❌ Error: ${error.message}`);
+        }
+    </script>
+</body>
+</html>
